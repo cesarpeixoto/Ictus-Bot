@@ -64,7 +64,8 @@ public class SelectorController : MonoBehaviour
     void Update()
     {
         // Recebe a input
-        _input.Set(Input.GetAxis("Xbox RHorizontal"), Input.GetAxis("Xbox RVertical")); // Isso aqui precisa vir do GameManager.
+        _input.Set(/*Input.GetAxis("Xbox RHorizontal")*/ InputManager.GetSelectorHorizontalAxis(),
+            /*Input.GetAxis("Xbox RVertical")*/ InputManager.GetSelectorVerticalAxis()); // Isso aqui precisa vir do GameManager.
         if (_input.sqrMagnitude > 0.0f)
         {
             // Calcula a direção do input, considerando a perspectiva isométrica.
@@ -93,10 +94,10 @@ public class SelectorController : MonoBehaviour
             //_selector.Translate(direction, Space.World);
 
         }
-        _leftTrigger = Input.GetAxis("Xbox RLTrigger") < 0.0f;
-        _rightTrigger = Input.GetAxis("Xbox RLTrigger") > 0.0f;
+        _leftTrigger = /*Input.GetAxis("Xbox RLTrigger") < 0.0f*/ InputManager.GetCancelTrigger();
+        _rightTrigger = /*Input.GetAxis("Xbox RLTrigger") > 0.0f*/ InputManager.GetActionTrigger();
 
-        if(_leftTrigger)
+        if (_leftTrigger)
         {
             
         }

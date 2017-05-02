@@ -54,7 +54,8 @@ public class PlayerController : MonoBehaviour
         if (testLocalPlayer)
         {
             // Recebe a input
-            _input.Set(Input.GetAxis("Xbox LHorizontal"), Input.GetAxis("Xbox LVertical")); // Isso aqui precisa vir do GameManager.
+            _input.Set(/*Input.GetAxis("Xbox LHorizontal")*/ InputManager.GetPlayerHorizontalAxis(),
+                /*Input.GetAxis("Xbox LVertical")*/ InputManager.GetPlayerVerticalAxis()); // Isso aqui precisa vir do GameManager.
             // Normaliza preservando valores do input analógico inferiores a um.
             _input = Vector2.ClampMagnitude(_input, 1f);
             
