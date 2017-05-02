@@ -785,6 +785,7 @@ GameObject:
   - component: {fileID: 82219464714164086}
   - component: {fileID: 82029137386911304}
   - component: {fileID: 114205893582138716}
+  - component: {fileID: 114218192572721046}
   m_Layer: 0
   m_Name: Network Ancient Clan Hero
   m_TagString: Player
@@ -1996,7 +1997,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: e2ab7275bb4acb040b650fdbc629055f, type: 2}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2028,7 +2029,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: e2ab7275bb4acb040b650fdbc629055f, type: 2}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2222,7 +2223,7 @@ AudioSource:
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
-    m_RotationOrder: 4
+    m_RotationOrder: 0
   reverbZoneMixCustomCurve:
     serializedVersion: 2
     m_Curve:
@@ -2338,6 +2339,21 @@ MonoBehaviour:
   m_SnapThreshold: 5
   m_InterpolateRotation: 1
   m_InterpolateMovement: 1
+--- !u!114 &114218192572721046
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1700436777960786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e26b32501a8b2f4e89ae9a28a7f986a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabs:
+  - {fileID: 1392989004014270, guid: 10b89cf313d649042b6bc92fa7beb25b, type: 2}
+  - {fileID: 1466397726041052, guid: 031aa2f0424efbf49b32a854c86d54a1, type: 2}
+  targets: []
 --- !u!114 &114653864815287576
 MonoBehaviour:
   m_ObjectHideFlags: 1

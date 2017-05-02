@@ -213,6 +213,19 @@ namespace CustonNetwork
             return base.OnLobbyServerSceneLoadedForPlayer(lobbyPlayer, gamePlayer);
         }
 
+        public override void OnServerDisconnect(NetworkConnection conn)
+        {
+            NetworkServer.DestroyPlayersForConnection(conn);
+            if (conn.lastError != NetworkError.Ok)
+            {
+                if (LogFilter.logError)
+                {
+                    Debug.LogError("ServerDisconnected due to error: " + conn.lastError);
+                }
+            }
+            //base.OnServerDisconnect(conn);
+        }
+
 
 
 

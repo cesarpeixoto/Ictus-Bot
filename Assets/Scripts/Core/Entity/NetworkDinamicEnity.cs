@@ -28,6 +28,10 @@ public class NetworkDinamicEnity : NetworkEntity
 
     }
 
+    public void Select(bool condition)
+    {
+        CmdSelection(condition);
+    }
     
 
     public void SetNewDestiantion(Vector3 position)

@@ -51,7 +51,7 @@ public class NetworkHero : NetworkEntity
         else
         {
             DestroyImmediate(_selectorController);
-            DestroyImmediate(this);
+            //DestroyImmediate(this);
             //DestroyImmediate(_selector.gameObject);
         }
     }
