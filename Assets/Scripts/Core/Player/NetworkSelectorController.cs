@@ -64,7 +64,8 @@ public class NetworkSelectorController : NetworkBehaviour
     void Update()
     {
         // Recebe a input
-        _input.Set(Input.GetAxis("Xbox RHorizontal"), Input.GetAxis("Xbox RVertical")); // Isso aqui precisa vir do GameManager.
+        _input.Set(/*Input.GetAxis("Xbox RHorizontal")*/ InputManager.GetSelectorHorizontalAxis(), 
+            /*Input.GetAxis("Xbox RVertical")*/ InputManager.GetSelectorVerticalAxis()); // Isso aqui precisa vir do GameManager.
         if (_input.sqrMagnitude > 0.0f)
         {
             // Calcula a direção do input, considerando a perspectiva isométrica.
@@ -85,8 +86,8 @@ public class NetworkSelectorController : NetworkBehaviour
             if (temp.y < 0f) temp.y = 0;
             _selector.position = temp;
         }
-        _leftTrigger = Input.GetAxis("Xbox RLTrigger") < 0.0f;
-        _rightTrigger = Input.GetAxis("Xbox RLTrigger") > 0.0f;
+        _leftTrigger = /*Input.GetAxis("Xbox RLTrigger") < 0.0f*/ InputManager.GetCancelTrigger();
+        _rightTrigger = /*Input.GetAxis("Xbox RLTrigger") > 0.0f*/ InputManager.GetActionTrigger();
 
         if (_leftTrigger)
         {
