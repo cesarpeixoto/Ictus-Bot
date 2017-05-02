@@ -2356,6 +2356,8 @@ MonoBehaviour:
   _selectorRaycaster: {fileID: 0}
   selectorPrefab: {fileID: 1046635657113056, guid: dbf7be2810bfda248902679cc02e3b9b,
     type: 2}
+  testePrefab: {fileID: 1392989004014270, guid: 10b89cf313d649042b6bc92fa7beb25b,
+    type: 2}
 --- !u!114 &114721661213458652
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -5,10 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/_Lobby Teste/Scenes/LobbyTeste.unity
     guid: b659abd12f2019a4d819295bea2f248a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Network Match Test.unity
     guid: 66373ce7cdddc8a4393cb61facf21c74
   - enabled: 1

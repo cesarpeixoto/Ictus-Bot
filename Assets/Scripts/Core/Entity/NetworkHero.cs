@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class NetworkHero : NetworkEntity
 {
@@ -24,6 +25,8 @@ public class NetworkHero : NetworkEntity
     private static NetworkHero _instance = null;
     public static NetworkHero GetInstance() { return _instance; }
 
+    public GameObject testePrefab;
+
     // Awake is called when the script instance is being loaded
     private void Awake()
     {
@@ -43,6 +46,7 @@ public class NetworkHero : NetworkEntity
             _selector = NetworkSelector.transform;
             _selectorController.SetSelector(_selector);
             _selectorRaycaster = NetworkSelector.GetComponentInChildren<NetworkSelectorRaycaster>();
+            CmdSpawnMimions();
         }
         else
         {
@@ -51,7 +55,16 @@ public class NetworkHero : NetworkEntity
             //DestroyImmediate(_selector.gameObject);
         }
     }
-    
+
+    [Command]
+    public void CmdSpawnMimions()
+    {
+        GameObject mimion = (GameObject)Instantiate(testePrefab, this.transform.position + this.transform.forward * 2f, Quaternion.identity);
+        NetworkServer.Spawn(mimion);
+        //mimion.GetComponent<NetworkIdentity>().AssignClientAuthority(GetComponent<NetworkIdentity>().connectionToClient);
+        mimion.GetComponent<NetworkDinamicEnity>().CmdSelection(true);
+    }
+
 
     // TODO: Otimizar melhor, o operador da comparação não está funcionando como deveria com os arrays.
     public static void SetSelectorState(NetworkSelectorHitState newState)
@@ -125,6 +138,7 @@ public class NetworkHero : NetworkEntity
         {
             if (!_instance._alliesSlected.Contains(_instance.currentSelectorHitState.allies[i]))
             {
+                //_instance.transform.GetComponent<NetworkIdentity>().AssignClientAuthority(_instance.currentSelectorHitState.allies[i].GetComponent<NetworkIdentity>().connectionToClient);
                 _instance.currentSelectorHitState.allies[i].CmdSelection(true);
                 _instance._alliesSlected.Add(_instance.currentSelectorHitState.allies[i]);
 
