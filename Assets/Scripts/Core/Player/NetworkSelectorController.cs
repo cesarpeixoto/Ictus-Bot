@@ -118,7 +118,7 @@ public class NetworkSelectorController : NetworkBehaviour
         Vector3 result = Vector3.zero;
         Vector3 SelectorScreen = _mainCamera.WorldToScreenPoint(movement);
 
-        float offset = _selectorSize * _mainCamera.orthographicSize * _projector.orthographicSize;
+        float offset = 0.0f; /*_selectorSize * _mainCamera.orthographicSize * _projector.orthographicSize;*/
         SelectorScreen.Set(Mathf.Clamp(SelectorScreen.x, 0f + offset, Screen.width - offset),
                            Mathf.Clamp(SelectorScreen.y, 0f + offset + Screen.height / 25f, Screen.height - offset - Screen.height / 25f),
                            SelectorScreen.z);
