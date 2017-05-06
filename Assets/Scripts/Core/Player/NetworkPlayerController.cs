@@ -20,8 +20,6 @@ public class NetworkPlayerController : NetworkBehaviour
     [Tooltip("Duração da interpolação Smooth para Rotação.")]
     public float turnAccelerationTime = 0.2f;                       // Tempo de duração da interpolação Smooth para rotação.
 
-    public EntityClanType entityClan;
-
     //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     // Membros Privados.
     private Vector2 _input = Vector2.zero;                          // Vetor auxiliar para receber input.    
@@ -34,6 +32,7 @@ public class NetworkPlayerController : NetworkBehaviour
     private Animator _animator = null;                              // Referência do componente Animator.
     private CharacterController _controller = null;                 // Referência do componente CharacterController.
     private Camera _mainCamera = null;                              // Referência do componente Camera Principal.
+    private NetworkHero _networkHero = null;
 
 //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     //  Métodos Privados.
@@ -45,6 +44,7 @@ public class NetworkPlayerController : NetworkBehaviour
         _animator = GetComponent<Animator>();
         _controller = GetComponent<CharacterController>();
         _animSpeedHash = Animator.StringToHash("Speed");
+        _networkHero = GetComponent<NetworkHero>();
         if (isLocalPlayer)
         {
             _mainCamera = Camera.main;
@@ -99,7 +99,7 @@ public class NetworkPlayerController : NetworkBehaviour
             float targetRotation = Mathf.Atan2(_input.x + _input.y, _input.y - _input.x) * Mathf.Rad2Deg;
             // Faz uma interpolação suavizada para a rotação, passando a ideia de aceleração.
             transform.eulerAngles = Vector3.up * Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation,
-                                                    ref _turnSmoothVelocity, this.turnAccelerationTime, Mathf.Infinity, Time.fixedDeltaTime);
+                                    ref _turnSmoothVelocity, this.turnAccelerationTime, Mathf.Infinity, Time.fixedDeltaTime);
 
             // Determina o Vetor de velocidade. 
             _currentVelocity = (transform.forward * _currentSpeed * Time.fixedDeltaTime) + Physics.gravity;
@@ -123,7 +123,7 @@ public class NetworkPlayerController : NetworkBehaviour
 
     private void PlayFootStepSound()
     {
-        if (entityClan == EntityClanType.AncientClan)
+        if (_networkHero.entityClan == EntityClanType.AncientClan)
         {
             audioSources[_audioIndex].pitch = (_currentSpeed / 5f < 1f) ? 1f : Mathf.Max(_currentSpeed / 5f, 1.06f);
             audioSources[_audioIndex].Play();

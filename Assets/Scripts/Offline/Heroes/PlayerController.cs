@@ -146,36 +146,36 @@ public class PlayerController : MonoBehaviour
 // TODO: Trabalhar com os eventos do Animator, e terminar de implementar isso depois!! 
 // Mas temos que alterar porque o Animator é bugado pra caralho!!!!
 
-[System.Serializable]
-public class AudioController
-{
-    public delegate void CallBack();
-    private float _play = 0.0f;
-    private float _prevPlay = 0.0f;
-    private float _animationEndTime = 0.0f;
+//[System.Serializable]
+//public class AudioController
+//{
+//    public delegate void CallBack();
+//    private float _play = 0.0f;
+//    private float _prevPlay = 0.0f;
+//    private float _animationEndTime = 0.0f;
 
-    private List<AudioEvent> _audioEvents = new List<AudioEvent>();
+//    private List<AudioEvent> _audioEvents = new List<AudioEvent>();
 
-    public void RegisterEvent(float time, CallBack callback)
-    {
-        _audioEvents.Add(new AudioEvent(time, callback));
-        _audioEvents.Sort(delegate (AudioEvent ae1, AudioEvent ae2)
-                          {
-                              return (ae1.time.CompareTo(ae2.time));
-                          });
-    }
+//    public void RegisterEvent(float time, CallBack callback)
+//    {
+//        _audioEvents.Add(new AudioEvent(time, callback));
+//        _audioEvents.Sort(delegate (AudioEvent ae1, AudioEvent ae2)
+//                          {
+//                              return (ae1.time.CompareTo(ae2.time));
+//                          });
+//    }
 
-}
+//}
 
 
 
-[System.Serializable]
-public class AudioEvent
-{    
-    public float time = 0.0f;
-    public AudioController.CallBack callback = null;
-    public AudioEvent(float time, AudioController.CallBack callback) { this.time = time; this.callback = callback; }
-}
+//[System.Serializable]
+//public class AudioEvent
+//{    
+//    public float time = 0.0f;
+//    public AudioController.CallBack callback = null;
+//    public AudioEvent(float time, AudioController.CallBack callback) { this.time = time; this.callback = callback; }
+//}
 
 
 

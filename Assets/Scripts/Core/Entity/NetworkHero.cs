@@ -1,26 +1,79 @@
-﻿using System.Collections;
+﻿/* ==============================================================================================================
+Projeto Integrado IV - V
+Curso: Tecnologia em Jogos Digitais - 4o/5o Semestres - 2017
+Professor: Enric Llagostera
+//---------------------------------------------------------------------------------------------------------------
+RESUMO GERAL:
+
+Esta classe deriva da classe NetworkEntity, que estabelecem as entidades do jogo, e, por via de consequência, é 
+derivada de NetworkBehaviour. Portanto, esta classe deverá desenvolver três papeis de fundamental importância.
+
+Primeiramente, por conta da herança, faz com que o Heroi seja uma entidade no jogo, podendo interagir com outras 
+entidades, e ser marcada como alvo. (Atividade exclusiva do nado Client).
+
+A segunda função e a mais importante, se dá em função da arquitetura do jogo, que estabelece o Herói como detentor 
+da ClientAuthority na partida. Portanto, ela deverá atuar como GameManager, centralizando as funções de regras 
+de negócio (que poderá ser delegada para outras classes não script), como a gestão da economia, monitoramento das 
+condições de vitória e derrota, gerenciamento das unidades estáticas e dinâmicas, entre outras (Atividade exclusiva 
+do lado Server).
+
+A terceira função, por via de consequência, é fazer a sincronia destas informações, entre o Server e os demais 
+Clients, portanto, será detentora das Synchronized Variables, Networked Events, enviar Commands e 
+chamadas de Client RPC.
+
+//---------------------------------------------------------------------------------------------------------------
+DEPENDÊNCIAS:
+
+Class / Struct
+SelectorStateType
+NetworkDinamicEnity
+NetworkSelectorHitState
+
+Components
+NetworkPlayerController
+NetworkSelectorController
+NetworkSelectorRaycaster
+
+//---------------------------------------------------------------------------------------------------------------
+
+$Creator: Cesar Peixoto $
+$Notice: (C) Copyright 2017 by Cesar Peixoto. All Rights Reserved. $     Finalizado em 22/03/2017
+=============================================================================================================== */
+
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
 public class NetworkHero : NetworkEntity
 {
-    private List<NetworkDinamicEnity> _alliesSlected = new List<NetworkDinamicEnity>();
-    private Entity _target = null;
-    private NetworkSelectorHitState currentSelectorHitState;
+//  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    // Membros Públicos.
 
+    // Estado atual do cursor do Seletor.
     public SelectorStateType currentState = SelectorStateType.Valid;
-   
+
+//  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    // Membros Privados.
+
+    // Lista contendo as entidades válidas selecionadas no momento.
+    private List<NetworkDinamicEnity> _alliesSlected = new List<NetworkDinamicEnity>();
+    // Contem os dados atuais coletados pelo Seletor.
+    private NetworkSelectorHitState _currentSelectorHitState;
+
+    // Referência dos componentes do Player
+    private NetworkPlayerController _playerController = null;
+    private NetworkSelectorController _selectorController = null;
+    private NetworkSelectorRaycaster _selectorRaycaster = null;
+
+    // Referência do Cursor do Seletor.
+    private Transform _selector = null;
+
 
     public static EntityClanType EntityClan { get { return _instance.entityClan; } }
     public static SelectorStateType CurrentState { get { return _instance.currentState; } }
-
-    public NetworkPlayerController _playerController = null;
-    public NetworkSelectorController _selectorController = null;
-    public NetworkSelectorRaycaster _selectorRaycaster = null;
-    private Transform _selector = null;
-
-    public GameObject selectorPrefab = null;
+    //public static bool IsLocalPlayer { get { return _instance.isLocalPlayer; } }
 
     private static NetworkHero _instance = null;
     public static NetworkHero GetInstance() { return _instance; }
@@ -30,29 +83,31 @@ public class NetworkHero : NetworkEntity
     // Awake is called when the script instance is being loaded
     private void Awake()
     {
-        // Fazer a checagem do LocalPLayer aqui!!! Vale a pena todos derivarem de networkbehaviour??        
+        // Inicializa as referências
         _playerController = GetComponent<NetworkPlayerController>();
         _selectorController = GetComponent<NetworkSelectorController>();
-                                    
     }
+
+    // This is invoked on behaviours that have authority, based on context and the LocalPlayerAuthority value on the NetworkIdentity
+    public override void OnStartAuthority()
+    {
+        // Instancia única é garantida apenas no GameObject que possui LocalPlayerAuthority.
+        _instance = this;
+    }    
 
     // Start is called just before any of the Update methods is called the first time
     private void Start()
     {
         if (isLocalPlayer)
         {
-            _instance = this;
-            GameObject NetworkSelector = (GameObject)Instantiate(selectorPrefab, this.transform.position + Vector3.forward * 2f, this.transform.rotation);
-            _selector = NetworkSelector.transform;
-            _selectorController.SetSelector(_selector);
-            _selectorRaycaster = NetworkSelector.GetComponentInChildren<NetworkSelectorRaycaster>();
+            StartCoroutine(FindSelectorRaycaster());
             CmdSpawnMimions();
         }
         else
         {
-            DestroyImmediate(_selectorController);
-            //DestroyImmediate(this);
-            //DestroyImmediate(_selector.gameObject);
+            //if(!isServer)
+            //    DestroyImmediate(this);
+            DestroyImmediate(_selectorController);            
         }
     }
 
@@ -60,16 +115,31 @@ public class NetworkHero : NetworkEntity
     public void CmdSpawnMimions()
     {
         GameObject mimion = (GameObject)Instantiate(testePrefab, this.transform.position + this.transform.forward * 2f, Quaternion.identity);
-        NetworkServer.Spawn(mimion);
+        NetworkServer.SpawnWithClientAuthority(mimion, this.gameObject);
         //mimion.GetComponent<NetworkIdentity>().AssignClientAuthority(GetComponent<NetworkIdentity>().connectionToClient);
-        mimion.GetComponent<NetworkDinamicEnity>().CmdSelection(true);
+        //mimion.GetComponent<NetworkDinamicEnity>().CmdSelection(true);
+    }
+
+    private IEnumerator FindSelectorRaycaster()
+    {
+        GameObject SelectorCursor = null;
+        do
+        {
+            SelectorCursor = GameObject.FindWithTag("Selector Cursor");
+            yield return null;
+
+        } while (SelectorCursor == null);
+
+        _selector = SelectorCursor.transform;
+        _selectorRaycaster = _selector.GetComponentInChildren<NetworkSelectorRaycaster>();
+
     }
 
 
     // TODO: Otimizar melhor, o operador da comparação não está funcionando como deveria com os arrays.
     public static void SetSelectorState(NetworkSelectorHitState newState)
     {
-        _instance.currentSelectorHitState = newState;
+        _instance._currentSelectorHitState = newState;
         if ((SelectorStateType)newState.selectorState != _instance.currentState)
         {
             _instance.currentState = (SelectorStateType)newState.selectorState;
@@ -92,11 +162,11 @@ public class NetworkHero : NetworkEntity
         {
             case SelectorStateType.Valid:
                 {
-                    if (_instance._alliesSlected.Count > 0 && _instance.currentSelectorHitState.allies.Length == 0) // precisa checar se não tem unidades para selecionar!!!!
+                    if (_instance._alliesSlected.Count > 0 && _instance._currentSelectorHitState.allies.Length == 0) // precisa checar se não tem unidades para selecionar!!!!
                     {
                         MoveAction(position);
                     }
-                    else if (_instance.currentSelectorHitState.allies.Length > 0)
+                    else if (_instance._currentSelectorHitState.allies.Length > 0)
                     {
                         Select();
 
@@ -134,13 +204,13 @@ public class NetworkHero : NetworkEntity
 
     private static void Select()
     {
-        for (int i = 0; i < _instance.currentSelectorHitState.allies.Length; i++)
+        for (int i = 0; i < _instance._currentSelectorHitState.allies.Length; i++)
         {
-            if (!_instance._alliesSlected.Contains(_instance.currentSelectorHitState.allies[i]))
+            if (!_instance._alliesSlected.Contains(_instance._currentSelectorHitState.allies[i]))
             {
                 //_instance.transform.GetComponent<NetworkIdentity>().AssignClientAuthority(_instance.currentSelectorHitState.allies[i].GetComponent<NetworkIdentity>().connectionToClient);
-                _instance.currentSelectorHitState.allies[i].CmdSelection(true);
-                _instance._alliesSlected.Add(_instance.currentSelectorHitState.allies[i]);
+                _instance._currentSelectorHitState.allies[i].CmdSelection(true);
+                _instance._alliesSlected.Add(_instance._currentSelectorHitState.allies[i]);
 
                 // TODO: Implementação de audio.
                 // TODO: Implementação de UI; Callback (OnUpdadeHUD??)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class NetworkSelectorController : NetworkBehaviour
+public class NetworkSelectorController : MonoBehaviour
 {
 //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     // Membros Públicos.
@@ -47,24 +47,37 @@ public class NetworkSelectorController : NetworkBehaviour
     private Camera _mainCamera = null;                                // Referência do componente Camera, na principal.
 
 
-//  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+    //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     // Use this for initialization
     void Start()
     {
+        // Ordem de execução garante a execução do NetworkHero primeiramente, portanto, este callback só será chamado se pertecer
+        // ao GameObject que possui LocalPlayerAuthority, do contrário, ele é destruido antes de chegar a este ponto.
+
         // Inicializa as referências
         _mainCamera = Camera.main;
         _selectorOriginPoint = this.transform.Find("Selector Origin Point");
-        
 
-        
+        // Cria Instância do Cursor do Seletor.
+        GameObject SelectorCursor = (GameObject)Instantiate(Resources.Load("Player/NetworkSelector", typeof(GameObject)), 
+                                                this.transform.position + Vector3.forward * 2f, this.transform.rotation);
+
+        // Inicializa referências para o Cursor do Seletor
+        _selector = SelectorCursor.transform;
+        _projector = _selector.Find("Projector").GetComponent<Projector>();
+        _selectorArc = _selector.GetComponent<LineRenderer>();
+        _renderer = _selector.Find("Selector Mesh").GetComponent<MeshRenderer>();
+        SetColor(SelectorStateType.Valid);
     }
 
-//  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     // Update is called once per frame
     void Update()
     {
+        
         // Recebe a input
-        _input.Set(/*Input.GetAxis("Xbox RHorizontal")*/ InputManager.GetSelectorHorizontalAxis(), 
+        _input.Set(/*Input.GetAxis("Xbox RHorizontal")*/ InputManager.GetSelectorHorizontalAxis(),
             /*Input.GetAxis("Xbox RVertical")*/ InputManager.GetSelectorVerticalAxis()); // Isso aqui precisa vir do GameManager.
         if (_input.sqrMagnitude > 0.0f)
         {
@@ -76,7 +89,7 @@ public class NetworkSelectorController : NetworkBehaviour
             direction *= Time.deltaTime * movimentSpeed;
 
             // TODO: Bug Conhecido.
-            direction = ClampToScreen(direction); 
+            direction = ClampToScreen(direction);
 
             direction.y = (NetworkSelectorRaycaster.surfaceHeight - direction.y);
 
@@ -96,19 +109,33 @@ public class NetworkSelectorController : NetworkBehaviour
         if (_rightTrigger)
         {
             NetworkHero.Action(_selector.position);
-        }
-
+        }       
+        
     }
 
-//  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
     // This function is called every fixed framerate frame, if the MonoBehaviour is enabled
     private void FixedUpdate()
     {
         RenderConnectingArc(_selectorOriginPoint, _selector);
         AnimateSelector();
+        
     }
 
-//  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    // This function is called when the MonoBehaviour will be destroyed
+    private void OnDestroy()
+    {
+        if(_selector != null)
+            Destroy(_selector.gameObject);
+    }
+
+
+
+
+
+
+
+    //  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
     // TODO: Precisa alterar, levando em conta a altura da merda!!!!
     // Limita o movimento do seletor à area da tela.
