@@ -1,9 +1,8 @@
 ﻿
 
-
-
 public enum EntityClanType { AncientClan, ModernClan }
 public enum SelectorStateType { Valid, Invalid, Opponent }
+public enum CommandType { NoOrder, GoTo, Attack, Follow, CancelOrder }
 
 public struct SelectorHitState
 {

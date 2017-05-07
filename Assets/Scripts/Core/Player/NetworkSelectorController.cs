@@ -104,11 +104,11 @@ public class NetworkSelectorController : MonoBehaviour
 
         if (_leftTrigger)
         {
-            NetworkHero.DeSelect();
+            NetworkHero.GetInstance().DeSelect();
         }
         if (_rightTrigger)
         {
-            NetworkHero.Action(_selector.position);
+            NetworkHero.GetInstance().SetAction(_selector.position);
         }       
         
     }

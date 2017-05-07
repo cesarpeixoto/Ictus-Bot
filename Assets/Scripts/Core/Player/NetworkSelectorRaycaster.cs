@@ -88,7 +88,7 @@ public class NetworkSelectorRaycaster : MonoBehaviour
                 hitState.allies = new NetworkDinamicEnity[0];
             if (hitState.opponent == null)
                 hitState.opponent = new NetworkDinamicEnity[0];
-            NetworkHero.SetSelectorState(hitState);
+            NetworkHero.GetInstance().SetSelectorState(hitState);
         }
     }
 

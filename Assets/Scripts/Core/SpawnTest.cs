@@ -35,6 +35,6 @@ public class SpawnTest : NetworkBehaviour
         GameObject mimion = (GameObject)Instantiate(prefabs[prefabIndex], spawnPoint, Quaternion.identity);        
         NetworkServer.Spawn(mimion);
         //mimion.GetComponent<NetworkIdentity>().AssignClientAuthority(GetComponent<NetworkIdentity>().connectionToClient);
-        mimion.GetComponent<NetworkDinamicEnity>().SetNewDestiantion(targetPosition);
+        //mimion.GetComponent<NetworkDinamicEnity>().SetNewDestiantion(targetPosition);
     }
 }

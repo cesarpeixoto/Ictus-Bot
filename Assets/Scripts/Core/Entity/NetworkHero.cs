@@ -21,6 +21,8 @@ A terceira função, por via de consequência, é fazer a sincronia destas infor
 Clients, portanto, será detentora das Synchronized Variables, Networked Events, enviar Commands e 
 chamadas de Client RPC.
 
+Por razões de conveniência, esta classe seguirá o padrão de projeto Singleton.
+
 //---------------------------------------------------------------------------------------------------------------
 DEPENDÊNCIAS:
 
@@ -116,6 +118,7 @@ public class NetworkHero : NetworkEntity
     {
         GameObject mimion = (GameObject)Instantiate(testePrefab, this.transform.position + this.transform.forward * 2f, Quaternion.identity);
         NetworkServer.SpawnWithClientAuthority(mimion, this.gameObject);
+        mimion.GetComponent<NetworkDinamicEnity>().SetCommander(this.transform);
         //mimion.GetComponent<NetworkIdentity>().AssignClientAuthority(GetComponent<NetworkIdentity>().connectionToClient);
         //mimion.GetComponent<NetworkDinamicEnity>().CmdSelection(true);
     }
@@ -132,23 +135,22 @@ public class NetworkHero : NetworkEntity
 
         _selector = SelectorCursor.transform;
         _selectorRaycaster = _selector.GetComponentInChildren<NetworkSelectorRaycaster>();
-
     }
 
 
     // TODO: Otimizar melhor, o operador da comparação não está funcionando como deveria com os arrays.
-    public static void SetSelectorState(NetworkSelectorHitState newState)
+    public void SetSelectorState(NetworkSelectorHitState newState)
     {
-        _instance._currentSelectorHitState = newState;
+        _currentSelectorHitState = newState;
         if ((SelectorStateType)newState.selectorState != _instance.currentState)
         {
-            _instance.currentState = (SelectorStateType)newState.selectorState;
-            _instance._selectorController.SetColor(_instance.currentState);
+            this.currentState = (SelectorStateType)newState.selectorState;
+            _selectorController.SetColor(this.currentState);
         }
         // _instance._target = AttackPreferenceRules(ref newState.opponent);
     }
 
-    private static Entity AttackPreferenceRules(ref Entity[] oppenets)
+    private Entity AttackPreferenceRules(ref Entity[] oppenets)
     {
         if (oppenets == null || oppenets.Length == 0)
             return null;
@@ -156,26 +158,25 @@ public class NetworkHero : NetworkEntity
         return oppenets[0];
     }
 
-    public static void Action(Vector3 position)
+    public void SetAction(Vector3 position)
     {
         switch (_instance.currentState)
         {
             case SelectorStateType.Valid:
                 {
-                    if (_instance._alliesSlected.Count > 0 && _instance._currentSelectorHitState.allies.Length == 0) // precisa checar se não tem unidades para selecionar!!!!
+                    if (_alliesSlected.Count > 0 && _currentSelectorHitState.allies.Length == 0) // precisa checar se não tem unidades para selecionar!!!!
                     {
-                        MoveAction(position);
+                        SendCommand(CommandType.GoTo, position);
                     }
-                    else if (_instance._currentSelectorHitState.allies.Length > 0)
+                    else if (_currentSelectorHitState.allies.Length > 0)
                     {
                         Select();
-
                     }
                 }
                 break;
             case SelectorStateType.Invalid:
                 {
-
+                    // TODO: Feedback negativo, de que não pode executar ordem.
                 }
                 break;
             case SelectorStateType.Opponent:
@@ -188,46 +189,67 @@ public class NetworkHero : NetworkEntity
         }
     }
 
-    public static void CancelAction()
+    public void CancelAction()
     {
 
     }
 
 
-    private static void MoveAction(Vector3 position)
+    private void SendCommand(CommandType command)
     {
-        for (int i = 0; i < _instance._alliesSlected.Count; i++)
+        for (int i = 0; i < _alliesSlected.Count; i++)
         {
-            _instance._alliesSlected[i].CmdSetNewDestiantion(position);
+            _alliesSlected[i].ReciveCommand(command);
         }
     }
 
-    private static void Select()
+    private void SendCommand(CommandType command, Vector3 position)
     {
-        for (int i = 0; i < _instance._currentSelectorHitState.allies.Length; i++)
+        for (int i = 0; i < _alliesSlected.Count; i++)
         {
-            if (!_instance._alliesSlected.Contains(_instance._currentSelectorHitState.allies[i]))
+            _alliesSlected[i].ReciveCommand(command, position);
+        }
+    }
+
+
+
+    public void SendFollow()
+    {
+        for (int i = 0; i < _alliesSlected.Count; i++)
+        {
+            if (_alliesSlected[i].currentCommand == CommandType.NoOrder)
+                _alliesSlected[i].ReciveCommand(CommandType.Follow);
+        }
+    }
+
+    private void MoveAction(Vector3 position)
+    {
+        for (int i = 0; i < _alliesSlected.Count; i++)
+        {
+            _alliesSlected[i].ReciveCommand(CommandType.GoTo, position);
+        }
+    }
+
+    private void Select()
+    {
+        for (int i = 0; i < _currentSelectorHitState.allies.Length; i++)
+        {
+            if (!_alliesSlected.Contains(_currentSelectorHitState.allies[i]))
             {
                 //_instance.transform.GetComponent<NetworkIdentity>().AssignClientAuthority(_instance.currentSelectorHitState.allies[i].GetComponent<NetworkIdentity>().connectionToClient);
-                _instance._currentSelectorHitState.allies[i].CmdSelection(true);
-                _instance._alliesSlected.Add(_instance._currentSelectorHitState.allies[i]);
-
-                // TODO: Implementação de audio.
-                // TODO: Implementação de UI; Callback (OnUpdadeHUD??)
+                _currentSelectorHitState.allies[i].Select();
+                _alliesSlected.Add(_currentSelectorHitState.allies[i]);
             }
         }
-        //
     }
 
-    public static void DeSelect()
+    public void DeSelect()
     {
-        for (int i = 0; i < _instance._alliesSlected.Count; i++)
+        for (int i = 0; i < _alliesSlected.Count; i++)
         {
-            _instance._alliesSlected[i].CmdSelection(false);
-            
+            _alliesSlected[i].CancelSelection();            
         }
-        _instance._alliesSlected.Clear();
-        //
+        _alliesSlected.Clear();
     }
 
 }
